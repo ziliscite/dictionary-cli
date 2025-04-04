@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -14,6 +15,7 @@ import (
 type (
 	errMsg          error
 	searchResultMsg []Information
+	loader          bool
 )
 
 type item Information
@@ -72,6 +74,7 @@ type Model struct {
 	searchState bool
 
 	loading bool
+	spinner spinner.Model
 
 	list list.Model
 
@@ -106,10 +109,16 @@ func NewModel() Model {
 		}
 	}
 
+	sp := spinner.New()
+	sp.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("70"))
+	sp.Spinner = spinner.Points
+
 	return Model{
 		textInput: ti,
 
 		searchState: true,
+		loading:     false,
+		spinner:     sp,
 
 		list:    l,
 		pointer: 0,
@@ -145,8 +154,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case searchResultMsg:
+		m.loading = false
 		cmds = append(cmds, m.SetItem(msg))
 		return m, tea.Batch(cmds...)
+
+	case loader:
+		return m, m.spinner.Tick
 
 	case errMsg:
 		m.err = msg
@@ -154,11 +167,26 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
+	if m.loading {
+		return updateLoading(msg, m)
+	}
+
 	if m.searchState {
 		return updateSearch(msg, m)
 	}
 
 	return updateDictionaryList(msg, m)
+}
+
+func updateLoading(msg tea.Msg, m Model) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case spinner.TickMsg:
+		var cmd tea.Cmd
+		m.spinner, cmd = m.spinner.Update(msg)
+		return m, cmd
+	}
+
+	return m, nil
 }
 
 func updateSearch(msg tea.Msg, m Model) (tea.Model, tea.Cmd) {
@@ -170,14 +198,19 @@ func updateSearch(msg tea.Msg, m Model) (tea.Model, tea.Cmd) {
 		case tea.KeyEnter:
 			m.searchState = false
 			m.loading = true
-			return m, func() tea.Msg {
-				results, err := SearchList(m.textInput.Value())
-				if err != nil {
-					return errMsg(err)
-				}
+			return m, tea.Batch(
+				func() tea.Msg {
+					return loader(true)
+				},
+				func() tea.Msg {
+					results, err := SearchList(m.textInput.Value())
+					if err != nil {
+						return errMsg(err)
+					}
 
-				return searchResultMsg(results)
-			}
+					return searchResultMsg(results)
+				},
+			)
 
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return m, tea.Quit
@@ -206,6 +239,10 @@ func updateDictionaryList(msg tea.Msg, m Model) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
+	if m.loading {
+		return fmt.Sprintf("\n %s\n\n", m.spinner.View())
+	}
+
 	if m.searchState {
 		return searchView(m)
 	} else {
