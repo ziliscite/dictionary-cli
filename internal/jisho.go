@@ -43,7 +43,7 @@ func getFromDictionary(keyword string) (io.ReadCloser, error) {
 	}
 
 	if get.StatusCode != http.StatusOK {
-		return nil, err
+		return nil, fmt.Errorf("get error: %s", get.Status)
 	}
 
 	return get.Body, nil
