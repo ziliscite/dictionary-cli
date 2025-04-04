@@ -1,12 +1,25 @@
 package main
 
-import "github.com/ziliscite/dictionary-cli/internal"
+import (
+	"fmt"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/ziliscite/dictionary-cli/internal"
+	"os"
+)
+
+//func main() {
+//	result, err := internal.Search("rain")
+//	if err != nil {
+//		return
+//	}
+//
+//	internal.DisplayJisho(result)
+//}
 
 func main() {
-	result, err := internal.Search("rain")
-	if err != nil {
-		return
+	mod := internal.NewModel()
+	if _, err := tea.NewProgram(mod).Run(); err != nil {
+		fmt.Println("Error running program:", err)
+		os.Exit(1)
 	}
-
-	internal.DisplayJisho(result)
 }

@@ -63,6 +63,16 @@ func Search(keyword string) (*Jisho, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer b.Close()
 
 	return parseJisho(b)
+}
+
+func SearchList(keyword string) ([]Information, error) {
+	jisho, err := Search(keyword)
+	if err != nil {
+		return nil, err
+	}
+
+	return jisho.Data, nil
 }
