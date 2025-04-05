@@ -17,6 +17,8 @@ A terminal-based Japanese dictionary application that uses the Jisho.org API to 
 
 ## Installation
 
+### From Source
+
 ```bash
 # Clone the repository
 git clone https://github.com/ziliscite/dictionary-cli.git
@@ -27,6 +29,20 @@ go build -o dict-cli ./cmd
 
 # Run the application
 ./dict-cli
+```
+
+### Using Docker
+
+```bash
+# Clone the repository
+git clone https://github.com/ziliscite/dictionary-cli.git
+cd dictionary-cli
+
+# Build the Docker image
+docker build -t dict-cli .
+
+# Run the application in a Docker container
+docker run -it dict-cli
 ```
 
 ## Usage

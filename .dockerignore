@@ -1,0 +1,14 @@
+.git
+.gitignore
+
+dict-cli
+*.exe
+
+.idea/
+.vscode/
+
+*.tmp
+*.log
+
+Dockerfile
+.dockerignore
