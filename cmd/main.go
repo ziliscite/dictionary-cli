@@ -7,15 +7,6 @@ import (
 	"os"
 )
 
-//func main() {
-//	result, err := internal.Search("rain")
-//	if err != nil {
-//		return
-//	}
-//
-//	internal.DisplayJisho(result)
-//}
-
 func main() {
 	mod := internal.NewModel()
 	if _, err := tea.NewProgram(mod).Run(); err != nil {
