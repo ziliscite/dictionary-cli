@@ -306,6 +306,12 @@ func searchView(m Model) string {
 }
 
 func dictionaryView(m Model) string {
+	if len(m.list.Items()) == 0 {
+		return lipgloss.NewStyle().Padding(1, 2, 1, 4).Render("No items found") + lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Padding(1, 0, 3, 4).Render(
+			"ctrl+s: back to search",
+		)
+	}
+
 	return "\n" + m.list.View()
 }
 
