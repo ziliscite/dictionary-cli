@@ -1,4 +1,4 @@
-package internal
+package domain
 
 import (
 	"encoding/json"
@@ -34,10 +34,18 @@ func buildQuery(keyword string) string {
 	return fmt.Sprintf("%s?%s", base, params.Encode())
 }
 
-var client = http.Client{}
+type searcher struct {
+	client *http.Client
+}
 
-func getFromDictionary(keyword string) (io.ReadCloser, error) {
-	get, err := client.Get(buildQuery(keyword))
+func NewSearcher(client *http.Client) Searcher {
+	return &searcher{
+		client: client,
+	}
+}
+
+func (s *searcher) getFromDictionary(keyword string) (io.ReadCloser, error) {
+	get, err := s.client.Get(buildQuery(keyword))
 	if err != nil {
 		return nil, err
 	}
@@ -58,8 +66,8 @@ func parseJisho(reader io.Reader) (*Jisho, error) {
 	return &data, nil
 }
 
-func Search(keyword string) (*Jisho, error) {
-	b, err := getFromDictionary(keyword)
+func (s *searcher) SearchRaw(keyword string) (*Jisho, error) {
+	b, err := s.getFromDictionary(keyword)
 	if err != nil {
 		return nil, err
 	}
@@ -68,8 +76,8 @@ func Search(keyword string) (*Jisho, error) {
 	return parseJisho(b)
 }
 
-func SearchList(keyword string) ([]Information, error) {
-	jisho, err := Search(keyword)
+func (s *searcher) Search(keyword string) ([]Information, error) {
+	jisho, err := s.SearchRaw(keyword)
 	if err != nil {
 		return nil, err
 	}
