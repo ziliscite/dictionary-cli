@@ -40,16 +40,14 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		return
 	}
 
-	str := fmt.Sprintf("%d. %s", index+1, i.Slug)
-
-	fn := lipgloss.NewStyle().PaddingLeft(4).Render
+	fn := view.NormalStyle.Render
 	if index == m.Index() {
 		fn = func(s ...string) string {
-			return lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170")).Render("> " + strings.Join(s, " "))
+			return view.HighlightStyle.Render("> " + strings.Join(s, " "))
 		}
 	}
 
-	_, _ = fmt.Fprint(w, fn(str))
+	_, _ = fmt.Fprint(w, fn(fmt.Sprintf("%d. %s", index+1, i.Slug)))
 }
 
 type Model struct {

@@ -18,12 +18,12 @@ const (
 )
 
 var (
-	highlightStyle = lipgloss.NewStyle().PaddingLeft(PaddingLeftOne).Foreground(lipgloss.Color(ColorHighlight))
-	normalStyle    = lipgloss.NewStyle().PaddingLeft(PaddingLeftTwo)
-	wordStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color(ColorMain))
-	wordStyleBold  = wordStyle.Bold(true)
-	mutedStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color(ColorMuted))
-	mutedStyleBold = mutedStyle.Bold(true)
+	HighlightStyle = lipgloss.NewStyle().PaddingLeft(PaddingLeftOne).Foreground(lipgloss.Color(ColorHighlight))
+	NormalStyle    = lipgloss.NewStyle().PaddingLeft(PaddingLeftTwo)
+	WordStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color(ColorMain))
+	WordStyleBold  = WordStyle.Bold(true)
+	MutedStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color(ColorMuted))
+	MutedStyleBold = MutedStyle.Bold(true)
 
-	dotStyle = lipgloss.NewStyle().Foreground(lipgloss.Color(ColorDot))
+	DotStyle = lipgloss.NewStyle().Foreground(lipgloss.Color(ColorDot))
 )
