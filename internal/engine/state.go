@@ -1,6 +1,8 @@
 package engine
 
-import "github.com/ziliscite/dictionary-cli/internal/domain"
+import (
+	"github.com/ziliscite/dictionary-cli/internal/domain"
+)
 
 type AppState int
 
@@ -9,6 +11,7 @@ const (
 	StateLoading
 	StateDictionaryList
 	StateDetail
+	StateTranslate
 )
 
 type switchToSearch struct{}
@@ -22,4 +25,6 @@ type switchToDetail struct {
 type switchToLoading struct{}
 type switchToError struct {
 	err error
+}
+type switchToTranslate struct {
 }

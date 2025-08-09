@@ -14,7 +14,9 @@ type SearchModel struct {
 	sc domain.Searcher
 }
 
-func NewSearchModel() *SearchModel {
+func NewSearchModel(
+	client *http.Client,
+) *SearchModel {
 	ti := textinput.New()
 	ti.Placeholder = "water"
 	ti.CharLimit = 60
@@ -23,7 +25,7 @@ func NewSearchModel() *SearchModel {
 
 	return &SearchModel{
 		ti: ti,
-		sc: domain.NewSearcher(http.DefaultClient),
+		sc: domain.NewSearcher(client),
 	}
 }
 
