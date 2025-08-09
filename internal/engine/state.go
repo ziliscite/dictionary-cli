@@ -15,8 +15,7 @@ type switchToSearch struct{}
 type switchToDictionaryNew struct {
 	res []domain.Information
 }
-type switchToDictionaryOld struct {
-}
+type switchToDictionaryOld struct{}
 type switchToDetail struct {
 	res *domain.Information
 }
