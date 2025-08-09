@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 type Information struct {
@@ -26,12 +27,12 @@ type Jisho struct {
 	Data []Information `json:"data"`
 }
 
-const base = "https://jisho.org/api/v1/search/words"
+const baseJisho = "https://jisho.org/api/v1/search/words"
 
 func buildQuery(keyword string) string {
 	params := make(url.Values)
 	params.Add("keyword", keyword)
-	return fmt.Sprintf("%s?%s", base, params.Encode())
+	return fmt.Sprintf("%s?%s", baseJisho, params.Encode())
 }
 
 type searcher struct {
@@ -39,6 +40,10 @@ type searcher struct {
 }
 
 func NewSearcher(client *http.Client) Searcher {
+	if client == nil {
+		client = &http.Client{Timeout: 10 * time.Second}
+	}
+
 	return &searcher{
 		client: client,
 	}
