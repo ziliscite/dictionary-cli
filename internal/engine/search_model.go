@@ -5,6 +5,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ziliscite/dictionary-cli/internal/domain"
+	"net/http"
 )
 
 type SearchModel struct {
@@ -12,7 +13,7 @@ type SearchModel struct {
 	sc domain.Searcher
 }
 
-func NewInputModel() *SearchModel {
+func NewSearchModel() *SearchModel {
 	ti := textinput.New()
 	ti.Placeholder = "water"
 	ti.CharLimit = 60
@@ -21,6 +22,7 @@ func NewInputModel() *SearchModel {
 
 	return &SearchModel{
 		ti: ti,
+		sc: domain.NewSearcher(http.DefaultClient),
 	}
 }
 
@@ -36,6 +38,22 @@ func (im *SearchModel) View() string {
 	) + "\n"
 }
 
+func (im *SearchModel) searchCmd(query string) tea.Cmd {
+	return tea.Batch(
+		func() tea.Msg {
+			return switchToLoading{}
+		},
+		func() tea.Msg {
+			res, err := im.sc.Search(query)
+			if err != nil {
+				return switchToError{err}
+			}
+
+			return switchToDictionaryNew{res: res}
+		},
+	)
+}
+
 func (im *SearchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
@@ -43,21 +61,13 @@ func (im *SearchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyEnter:
-			return im, tea.Batch(
-				func() tea.Msg {
-					return switchToLoading{}
-				},
-				func() tea.Msg {
-					results, err := im.sc.Search(im.ti.Value())
-					if err != nil {
-						return switchToError{err}
-					}
+			query := im.ti.Value()
+			if query == "" {
+				return im, nil
+			}
 
-					return switchToDictionary{
-						res: results,
-					}
-				},
-			)
+			im.ti.Reset()
+			return im, im.searchCmd(query)
 
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return im, tea.Quit
@@ -66,4 +76,8 @@ func (im *SearchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	im.ti, cmd = im.ti.Update(msg)
 	return im, cmd
+}
+
+func (im *SearchModel) Focus() tea.Cmd {
+	return im.ti.Focus()
 }

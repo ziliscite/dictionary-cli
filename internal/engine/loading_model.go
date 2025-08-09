@@ -33,7 +33,11 @@ func (lm *LoadingModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return lm, cmd
 	}
 
-	return lm, lm.sp.Tick
+	return lm, nil
+}
+
+func (lm *LoadingModel) Tick() tea.Cmd {
+	return lm.sp.Tick
 }
 
 func (lm *LoadingModel) View() string {

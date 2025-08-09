@@ -298,7 +298,7 @@ func searchView(m Model) string {
 
 func dictionaryView(m Model) string {
 	if len(m.list.Items()) == 0 {
-		return lipgloss.NewStyle().Padding(1, 2, 1, 4).Render("No items found") + lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Padding(1, 0, 3, 4).Render(
+		return view.BaseViewStyle.Render("No items found") + lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Padding(1, 0, 3, 4).Render(
 			"ctrl+s: back to search",
 		)
 	}
@@ -307,7 +307,7 @@ func dictionaryView(m Model) string {
 }
 
 func detailView(m Model) string {
-	return lipgloss.NewStyle().Padding(1, 2, 0, 4).Render(m.renderContent()) + lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Padding(1, 0, 2, 4).Render(
+	return view.BaseViewStyle.Render(m.renderContent()) + lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Padding(1, 0, 2, 4).Render(
 		"ctrl+s: back to search • backspace: back to dictionary",
 	)
 }

@@ -5,7 +5,6 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/ziliscite/dictionary-cli/internal/domain"
 	"github.com/ziliscite/dictionary-cli/internal/view"
 	"io"
@@ -78,6 +77,10 @@ func (dm *DictionaryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		dm.list.SetWidth(msg.Width)
+		return dm, nil
+
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyEnter:
@@ -94,6 +97,7 @@ func (dm *DictionaryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case tea.KeyBackspace:
+			dm.list.ResetSelected()
 			return dm, func() tea.Msg {
 				return switchToSearch{}
 			}
@@ -107,9 +111,18 @@ func (dm *DictionaryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return dm, cmd
 }
 
+func (dm *DictionaryModel) SetItems(infos []domain.Information) tea.Cmd {
+	items := make([]list.Item, len(infos))
+	for i, info := range infos {
+		items[i] = item(info)
+	}
+
+	return dm.list.SetItems(items)
+}
+
 func (dm *DictionaryModel) View() string {
 	if len(dm.list.Items()) == 0 {
-		return lipgloss.NewStyle().Padding(1, 2, 1, 4).Render("No items found") + lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Padding(1, 0, 3, 4).Render(
+		return view.BaseViewStyle.Render("No items found") + view.FootNoteStyle.Render(
 			"backspace: back to search",
 		)
 	}

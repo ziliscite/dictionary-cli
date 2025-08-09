@@ -12,8 +12,10 @@ const (
 )
 
 type switchToSearch struct{}
-type switchToDictionary struct {
+type switchToDictionaryNew struct {
 	res []domain.Information
+}
+type switchToDictionaryOld struct {
 }
 type switchToDetail struct {
 	res *domain.Information
