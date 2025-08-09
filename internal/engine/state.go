@@ -7,7 +7,8 @@ import (
 type AppState int
 
 const (
-	StateSearch AppState = iota
+	StateMenu AppState = iota
+	StateSearch
 	StateLoading
 	StateDictionaryList
 	StateDetail
@@ -26,5 +27,5 @@ type switchToLoading struct{}
 type switchToError struct {
 	err error
 }
-type switchToTranslate struct {
-}
+type switchToTranslate struct{}
+type switchToMenu struct{}

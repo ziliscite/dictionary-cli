@@ -8,6 +8,7 @@ import (
 
 type Engine struct {
 	state           AppState
+	menuModel       *MenuModel
 	searchModel     *SearchModel
 	loadingModel    *LoadingModel
 	dictionaryModel *DictionaryModel
@@ -16,6 +17,7 @@ type Engine struct {
 }
 
 func NewEngine(
+	menuModel *MenuModel,
 	searchModel *SearchModel,
 	loadingModel *LoadingModel,
 	dictionaryModel *DictionaryModel,
@@ -23,7 +25,8 @@ func NewEngine(
 	translatorModel *TranslatorModel,
 ) *Engine {
 	return &Engine{
-		state:           StateSearch,
+		state:           StateMenu,
+		menuModel:       menuModel,
 		searchModel:     searchModel,
 		loadingModel:    loadingModel,
 		dictionaryModel: dictionaryModel,
@@ -40,6 +43,10 @@ func (m *Engine) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
+	case switchToMenu:
+		m.Menu()
+		return m, nil
+
 	case switchToDictionaryNew:
 		m.DictionaryList()
 		cmds = append(cmds, m.dictionaryModel.SetItems(msg.res))
@@ -81,7 +88,17 @@ func (m *Engine) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
+	return m.State(msg)
+}
+
+func (m *Engine) State(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch m.state {
+	case StateMenu:
+		mdl, cmd := m.menuModel.Update(msg)
+		if mm, ok := mdl.(*MenuModel); ok {
+			m.menuModel = mm
+		}
+		return m, cmd
 	case StateLoading:
 		mdl, cmd := m.loadingModel.Update(msg)
 		if lm, ok := mdl.(*LoadingModel); ok {
@@ -129,6 +146,8 @@ func (m *Engine) View() string {
 		return m.detailModel.View()
 	case StateTranslate:
 		return m.translatorModel.View()
+	case StateMenu:
+		return m.menuModel.View()
 	default:
 		panic("unknown state")
 	}
@@ -152,4 +171,8 @@ func (m *Engine) Detail() {
 
 func (m *Engine) Translator() {
 	m.state = StateTranslate
+}
+
+func (m *Engine) Menu() {
+	m.state = StateMenu
 }

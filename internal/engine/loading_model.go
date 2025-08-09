@@ -32,14 +32,11 @@ func (lm *LoadingModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var cmd tea.Cmd
 		lm.sp, cmd = lm.sp.Update(msg)
 		return lm, cmd
-
-		//case tea.KeyMsg:
-		//	switch msg.Type {
-		//	case tea.KeyBackspace:
-		//		return lm, func() tea.Msg {
-		//			return switchToSearch{}
-		//		}
-		//	}
+	case tea.KeyMsg:
+		switch msg.Type {
+		case tea.KeyCtrlC, tea.KeyEsc:
+			return lm, tea.Quit
+		}
 	}
 
 	return lm, nil

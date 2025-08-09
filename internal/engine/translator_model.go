@@ -18,18 +18,22 @@ type TranslatorModel struct {
 	sc domain.Translator
 }
 
-func NewTranslatorModel(httpClient *http.Client, key string) *TranslatorModel {
+func NewTranslatorModel(httpClient *http.Client, k string) *TranslatorModel {
 	ta := textarea.New()
 	ta.CharLimit = 2000
-	ta.Placeholder = ""
+	ta.Placeholder = "私はバカな男だ"
 	ta.Focus()
+
+	//km := ta.KeyMap
+	//km.InsertNewline = key.NewBinding(key.WithHelp("ctrl+t", "translate"))
+	//ta.KeyMap = km
 
 	return &TranslatorModel{
 		ta:   ta,
 		pter: 0,
 		des:  []domain.TargetLang{domain.TargetJapanese, domain.TargetEnglish, domain.TargetIndonesia},
 
-		sc: domain.NewDeepLClient(key, httpClient),
+		sc: domain.NewDeepLClient(k, httpClient),
 	}
 }
 
@@ -48,7 +52,7 @@ func (im *TranslatorModel) View() string {
 		"What do you want to translate to %s?\n\n%s",
 		targetLanguage, im.ta.View(),
 	)) + view.LesterViewNoteStyle.Render(
-		fmt.Sprintf("esc/ctrl+c: exit • shift+left: %s • shift+right: %s • enter: translate", prev, next),
+		fmt.Sprintf("esc/ctrl+c: exit • ctrl+q: back to menu • shift+left: %s • shift+right: %s • ctrl+t: translate", prev, next),
 	)
 }
 
@@ -75,19 +79,19 @@ func (im *TranslatorModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
-		case tea.KeyCtrlShiftLeft:
+		case tea.KeyShiftLeft:
 			im.pter--
 			if im.pter < 0 {
 				im.pter = len(im.des) - 1
 			}
 
-		case tea.KeyCtrlShiftRight:
+		case tea.KeyShiftRight:
 			im.pter++
 			if im.pter >= len(im.des) {
 				im.pter = 0
 			}
 
-		case tea.KeyEnter:
+		case tea.KeyCtrlT:
 			query := im.ta.Value()
 			if query == "" {
 				return im, nil
@@ -97,6 +101,12 @@ func (im *TranslatorModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			im.ta.Reset()
 			return im, im.translateCmd(context.Background(), lang, query)
+
+		case tea.KeyCtrlQ:
+			im.ta.Reset()
+			return im, func() tea.Msg {
+				return switchToMenu{}
+			}
 
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return im, tea.Quit

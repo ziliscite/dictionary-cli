@@ -22,6 +22,7 @@ func main() {
 		Timeout: 5 * time.Second,
 	}
 
+	menuModel := engine.NewMenuModel()
 	loadingModel := engine.NewLoadingModel()
 
 	dictionaryModel := engine.NewDictionaryModel()
@@ -38,6 +39,7 @@ func main() {
 	translatorModel := engine.NewTranslatorModel(htc, deepLKey)
 
 	eng := engine.NewEngine(
+		menuModel,
 		searchModel,
 		loadingModel,
 		dictionaryModel,

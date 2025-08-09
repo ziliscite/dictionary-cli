@@ -38,7 +38,7 @@ func (im *SearchModel) View() string {
 		"What do you want to know?\n\n%s",
 		im.ti.View(),
 	)) + view.LesterViewNoteStyle.Render(
-		"esc/ctrl+c: exit",
+		"esc/ctrl+c: exit • ctrl+q: back to menu • enter: search",
 	)
 }
 
@@ -73,13 +73,14 @@ func (im *SearchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			im.ti.Reset()
 			return im, im.searchCmd(query)
 
+		case tea.KeyCtrlQ:
+			im.ti.Reset()
+			return im, func() tea.Msg {
+				return switchToMenu{}
+			}
+
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return im, tea.Quit
-
-		case tea.KeyCtrlT:
-			return im, func() tea.Msg {
-				return switchToTranslate{}
-			}
 		}
 	}
 

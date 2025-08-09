@@ -31,7 +31,7 @@ func (ddm *DictionaryDetailModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return switchToSearch{}
 			}
 
-		case tea.KeyBackspace:
+		case tea.KeyCtrlQ:
 			return ddm, func() tea.Msg {
 				return switchToDictionaryOld{}
 			}
@@ -46,7 +46,7 @@ func (ddm *DictionaryDetailModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (ddm *DictionaryDetailModel) View() string {
 	fnt := view.FootNoteStyle.Padding(1, 0, 2, 4).Render(
-		"ctrl+s: back to search • backspace: back to dictionary",
+		"ctrl+s: back to search • ctrl+q: back to dictionary",
 	)
 
 	if ddm.detail == nil {
