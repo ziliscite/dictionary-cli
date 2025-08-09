@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"log/slog"
 )
@@ -32,7 +33,7 @@ func NewEngine(
 }
 
 func (m *Engine) Init() tea.Cmd {
-	return nil
+	return textinput.Blink
 }
 
 func (m *Engine) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

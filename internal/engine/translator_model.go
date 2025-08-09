@@ -41,24 +41,24 @@ func (im *TranslatorModel) View() string {
 	pter := im.pter
 	deslen := len(im.des)
 	targetLanguage := im.des[pter%deslen].String()
-	prev := im.des[(pter-1)%deslen].String()
+	prev := im.des[(deslen+pter-1)%deslen].String()
 	next := im.des[(pter+1)%deslen].String()
 
 	return view.LesterViewStyle.Render(fmt.Sprintf(
 		"What do you want to translate to %s?\n\n%s",
-		im.ta.View(), targetLanguage,
+		targetLanguage, im.ta.View(),
 	)) + view.LesterViewNoteStyle.Render(
-		fmt.Sprintf("esc/ctrl+c: exit • <-: %s • ->: %s • enter: translate", prev, next),
+		fmt.Sprintf("esc/ctrl+c: exit • shift+left: %s • shift+right: %s • enter: translate", prev, next),
 	)
 }
 
-func (im *TranslatorModel) translateCmd(ctx context.Context, query string) tea.Cmd {
+func (im *TranslatorModel) translateCmd(ctx context.Context, lang domain.TargetLang, query string) tea.Cmd {
 	return tea.Batch(
 		func() tea.Msg {
 			return switchToLoading{}
 		},
 		func() tea.Msg {
-			res, err := im.sc.Translate(ctx, domain.TargetJapanese, query)
+			res, err := im.sc.Translate(ctx, lang, query)
 			if err != nil {
 				return switchToError{err}
 			}
@@ -69,42 +69,49 @@ func (im *TranslatorModel) translateCmd(ctx context.Context, query string) tea.C
 }
 
 func (im *TranslatorModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmds []tea.Cmd
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
+		case tea.KeyCtrlShiftLeft:
+			im.pter--
+			if im.pter < 0 {
+				im.pter = len(im.des) - 1
+			}
+
+		case tea.KeyCtrlShiftRight:
+			im.pter++
+			if im.pter >= len(im.des) {
+				im.pter = 0
+			}
+
 		case tea.KeyEnter:
 			query := im.ta.Value()
 			if query == "" {
 				return im, nil
 			}
 
+			lang := im.des[im.pter%len(im.des)]
+
 			im.ta.Reset()
-			return im, im.translateCmd(context.Background(), query)
+			return im, im.translateCmd(context.Background(), lang, query)
 
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return im, tea.Quit
 
-		case tea.KeyLeft:
-			im.pter--
-			if im.pter < 0 {
-				im.pter = len(im.des) - 1
-			}
-
-		case tea.KeyRight:
-			im.pter++
-			if im.pter >= len(im.des) {
-				im.pter = 0
-			}
-
 		default:
-			panic("unhandled default case")
+			if !im.ta.Focused() {
+				cmd = im.ta.Focus()
+				cmds = append(cmds, cmd)
+			}
 		}
 	}
 
 	im.ta, cmd = im.ta.Update(msg)
-	return im, cmd
+	cmds = append(cmds, cmd)
+	return im, tea.Batch(cmds...)
 }
 
 func (im *TranslatorModel) Focus() tea.Cmd {

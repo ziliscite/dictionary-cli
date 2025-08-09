@@ -75,6 +75,11 @@ func (im *SearchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return im, tea.Quit
+
+		case tea.KeyCtrlT:
+			return im, func() tea.Msg {
+				return switchToTranslate{}
+			}
 		}
 	}
 

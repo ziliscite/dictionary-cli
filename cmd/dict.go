@@ -7,7 +7,15 @@ import (
 	"net/http"
 	"os"
 	"time"
+	// import joho env
+	"github.com/joho/godotenv"
 )
+
+func init() {
+	if err := godotenv.Load(); err != nil {
+		return
+	}
+}
 
 func main() {
 	htc := &http.Client{
