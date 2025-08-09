@@ -24,10 +24,6 @@ func NewTranslatorModel(httpClient *http.Client, k string) *TranslatorModel {
 	ta.Placeholder = "私はバカな男だ"
 	ta.Focus()
 
-	//km := ta.KeyMap
-	//km.InsertNewline = key.NewBinding(key.WithHelp("ctrl+t", "translate"))
-	//ta.KeyMap = km
-
 	return &TranslatorModel{
 		ta:   ta,
 		pter: 0,
@@ -64,10 +60,14 @@ func (im *TranslatorModel) translateCmd(ctx context.Context, lang domain.TargetL
 		func() tea.Msg {
 			res, err := im.sc.Translate(ctx, lang, query)
 			if err != nil {
-				return switchToError{err}
+				return switchToError{
+					err: err,
+				}
 			}
 
-			return res
+			return switchToTranslateDetail{
+				res: res,
+			}
 		},
 	)
 }

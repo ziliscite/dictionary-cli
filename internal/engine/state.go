@@ -13,6 +13,7 @@ const (
 	StateDictionaryList
 	StateDetail
 	StateTranslate
+	StateTranslateDetail
 )
 
 type switchToSearch struct{}
@@ -28,4 +29,7 @@ type switchToError struct {
 	err error
 }
 type switchToTranslate struct{}
+type switchToTranslateDetail struct {
+	res []domain.Translation
+}
 type switchToMenu struct{}

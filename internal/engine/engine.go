@@ -1,19 +1,18 @@
 package engine
 
 import (
-	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"log/slog"
 )
 
 type Engine struct {
-	state           AppState
-	menuModel       *MenuModel
-	searchModel     *SearchModel
-	loadingModel    *LoadingModel
-	dictionaryModel *DictionaryModel
-	detailModel     *DictionaryDetailModel
-	translatorModel *TranslatorModel
+	state                AppState
+	menuModel            *MenuModel
+	searchModel          *SearchModel
+	loadingModel         *LoadingModel
+	dictionaryModel      *DictionaryModel
+	detailModel          *DictionaryDetailModel
+	translatorModel      *TranslatorModel
+	translateDetailModel *TranslationDetailModel
 }
 
 func NewEngine(
@@ -23,20 +22,22 @@ func NewEngine(
 	dictionaryModel *DictionaryModel,
 	detailModel *DictionaryDetailModel,
 	translatorModel *TranslatorModel,
+	translateDetailModel *TranslationDetailModel,
 ) *Engine {
 	return &Engine{
-		state:           StateMenu,
-		menuModel:       menuModel,
-		searchModel:     searchModel,
-		loadingModel:    loadingModel,
-		dictionaryModel: dictionaryModel,
-		detailModel:     detailModel,
-		translatorModel: translatorModel,
+		state:                StateMenu,
+		menuModel:            menuModel,
+		searchModel:          searchModel,
+		loadingModel:         loadingModel,
+		dictionaryModel:      dictionaryModel,
+		detailModel:          detailModel,
+		translatorModel:      translatorModel,
+		translateDetailModel: translateDetailModel,
 	}
 }
 
 func (m *Engine) Init() tea.Cmd {
-	return textinput.Blink
+	return nil
 }
 
 func (m *Engine) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -71,14 +72,18 @@ func (m *Engine) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, m.translatorModel.Focus())
 		return m, tea.Batch(cmds...)
 
+	case switchToTranslateDetail:
+		m.TranslateDetail()
+		cmds = append(cmds, m.translateDetailModel.SetItem(msg.res))
+		return m, tea.Batch(cmds...)
+
 	case switchToLoading:
 		m.Loading()
 		cmds = append(cmds, m.loadingModel.Tick())
 		return m, tea.Batch(cmds...)
 
 	case switchToError:
-		slog.Error("something went wrong", "error", msg.err.Error())
-		m.Search()
+		m.Menu()
 		return m, nil
 
 	case tea.KeyMsg:
@@ -91,44 +96,44 @@ func (m *Engine) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m.State(msg)
 }
 
+func updateAndAssign[T any](m *Engine, msg tea.Msg, upd func(tea.Msg) (tea.Model, tea.Cmd), set func(T)) (tea.Model, tea.Cmd) {
+	mdl, cmd := upd(msg)
+	if v, ok := mdl.(T); ok {
+		set(v)
+	}
+	return m, cmd
+}
+
 func (m *Engine) State(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch m.state {
 	case StateMenu:
-		mdl, cmd := m.menuModel.Update(msg)
-		if mm, ok := mdl.(*MenuModel); ok {
+		return updateAndAssign[*MenuModel](m, msg, m.menuModel.Update, func(mm *MenuModel) {
 			m.menuModel = mm
-		}
-		return m, cmd
+		})
 	case StateLoading:
-		mdl, cmd := m.loadingModel.Update(msg)
-		if lm, ok := mdl.(*LoadingModel); ok {
+		return updateAndAssign[*LoadingModel](m, msg, m.loadingModel.Update, func(lm *LoadingModel) {
 			m.loadingModel = lm
-		}
-		return m, cmd
+		})
 	case StateSearch:
-		mdl, cmd := m.searchModel.Update(msg)
-		if sm, ok := mdl.(*SearchModel); ok {
+		return updateAndAssign[*SearchModel](m, msg, m.searchModel.Update, func(sm *SearchModel) {
 			m.searchModel = sm
-		}
-		return m, cmd
+		})
 	case StateDictionaryList:
-		mdl, cmd := m.dictionaryModel.Update(msg)
-		if dm, ok := mdl.(*DictionaryModel); ok {
+		return updateAndAssign[*DictionaryModel](m, msg, m.dictionaryModel.Update, func(dm *DictionaryModel) {
 			m.dictionaryModel = dm
-		}
-		return m, cmd
+		})
 	case StateDetail:
-		mdl, cmd := m.detailModel.Update(msg)
-		if dm, ok := mdl.(*DictionaryDetailModel); ok {
+		return updateAndAssign[*DictionaryDetailModel](m, msg, m.detailModel.Update, func(dm *DictionaryDetailModel) {
 			m.detailModel = dm
-		}
-		return m, cmd
+		})
 	case StateTranslate:
-		mdl, cmd := m.translatorModel.Update(msg)
-		if tm, ok := mdl.(*TranslatorModel); ok {
+		return updateAndAssign[*TranslatorModel](m, msg, m.translatorModel.Update, func(tm *TranslatorModel) {
 			m.translatorModel = tm
-		}
-		return m, cmd
+		})
+	case StateTranslateDetail:
+		return updateAndAssign[*TranslationDetailModel](m, msg, m.translateDetailModel.Update, func(tm *TranslationDetailModel) {
+			m.translateDetailModel = tm
+		})
 	default:
 		return m, nil
 	}
@@ -136,6 +141,8 @@ func (m *Engine) State(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m *Engine) View() string {
 	switch m.state {
+	case StateMenu:
+		return m.menuModel.View()
 	case StateLoading:
 		return m.loadingModel.View()
 	case StateSearch:
@@ -146,8 +153,8 @@ func (m *Engine) View() string {
 		return m.detailModel.View()
 	case StateTranslate:
 		return m.translatorModel.View()
-	case StateMenu:
-		return m.menuModel.View()
+	case StateTranslateDetail:
+		return m.translateDetailModel.View()
 	default:
 		panic("unknown state")
 	}
@@ -171,6 +178,10 @@ func (m *Engine) Detail() {
 
 func (m *Engine) Translator() {
 	m.state = StateTranslate
+}
+
+func (m *Engine) TranslateDetail() {
+	m.state = StateTranslateDetail
 }
 
 func (m *Engine) Menu() {

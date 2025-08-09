@@ -77,7 +77,7 @@ func (t *translator) request(lang TargetLang, texts ...string) (io.Reader, error
 	return bytes.NewReader(b), nil
 }
 
-var baseDeep = "https://api.deepl.com/v2"
+var baseDeep = "https://api-free.deepl.com/v2"
 
 func (t *translator) execute(ctx context.Context, body io.Reader, endpoint string) (*http.Response, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, baseDeep+endpoint, body)

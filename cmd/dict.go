@@ -37,6 +37,7 @@ func main() {
 	}
 
 	translatorModel := engine.NewTranslatorModel(htc, deepLKey)
+	translateDetailModel := engine.NewTranslationDetailModel()
 
 	eng := engine.NewEngine(
 		menuModel,
@@ -45,6 +46,7 @@ func main() {
 		dictionaryModel,
 		detailModel,
 		translatorModel,
+		translateDetailModel,
 	)
 
 	if _, err := tea.NewProgram(eng).Run(); err != nil {
