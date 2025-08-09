@@ -5,6 +5,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ziliscite/dictionary-cli/internal/domain"
+	"github.com/ziliscite/dictionary-cli/internal/view"
 	"net/http"
 )
 
@@ -31,11 +32,12 @@ func (im *SearchModel) Init() tea.Cmd {
 }
 
 func (im *SearchModel) View() string {
-	return fmt.Sprintf(
-		"What do you want to know?\n\n%s\n\n%s",
+	return view.LesterViewStyle.Render(fmt.Sprintf(
+		"What do you want to know?\n\n%s",
 		im.ti.View(),
-		"(esc to quit)",
-	) + "\n"
+	)) + view.LesterViewNoteStyle.Render(
+		"esc/ctrl+c: exit",
+	)
 }
 
 func (im *SearchModel) searchCmd(query string) tea.Cmd {

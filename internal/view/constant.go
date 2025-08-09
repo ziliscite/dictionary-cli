@@ -27,6 +27,8 @@ var (
 
 	DotStyle = lipgloss.NewStyle().Foreground(lipgloss.Color(ColorDot))
 
-	BaseViewStyle = lipgloss.NewStyle().Padding(1, 2, 1, 4)
-	FootNoteStyle = MutedStyle.Padding(1, 0, 3, 4)
+	LesterViewStyle     = lipgloss.NewStyle().Padding(1, 2, 1, 0)
+	LesterViewNoteStyle = MutedStyle.Padding(1, 0, 3, 0)
+	BaseViewStyle       = lipgloss.NewStyle().Padding(1, 2, 1, 4)
+	FootNoteStyle       = MutedStyle.Padding(1, 0, 3, 4)
 )

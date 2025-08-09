@@ -5,6 +5,7 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/ziliscite/dictionary-cli/internal/view"
 )
 
 type LoadingModel struct {
@@ -31,6 +32,14 @@ func (lm *LoadingModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var cmd tea.Cmd
 		lm.sp, cmd = lm.sp.Update(msg)
 		return lm, cmd
+
+		//case tea.KeyMsg:
+		//	switch msg.Type {
+		//	case tea.KeyBackspace:
+		//		return lm, func() tea.Msg {
+		//			return switchToSearch{}
+		//		}
+		//	}
 	}
 
 	return lm, nil
@@ -41,5 +50,7 @@ func (lm *LoadingModel) Tick() tea.Cmd {
 }
 
 func (lm *LoadingModel) View() string {
-	return fmt.Sprintf("\n %s\n\n", lm.sp.View())
+	return view.LesterViewStyle.Render(fmt.Sprintf("Now loading %s", lm.sp.View())) + view.LesterViewNoteStyle.Render(
+		"esc: exit",
+	)
 }
