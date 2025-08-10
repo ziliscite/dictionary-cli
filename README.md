@@ -63,7 +63,7 @@ docker run -it dict-cli
 2. Press Enter to search
 3. Navigate the results using arrow keys
 4. Press Enter to view detailed information about a selected word
-5. Press Backspace to return to the results list
+5. Press Ctrl+Q to return to the results' list
 6. Press Ctrl+S to start a new search
 7. Press Ctrl+Q to return to the main menu
 8. Press Esc or Ctrl+C to quit the application
@@ -87,7 +87,7 @@ docker run -it dict-cli
 
 ### Dictionary Mode
 - `Enter` - Search or select an item
-- `Backspace` - Return to previous view
+- `Ctrl+Q` - Return to previous view
 - `Ctrl+S` - Return to search
 - Arrow keys - Navigate through search results
 
