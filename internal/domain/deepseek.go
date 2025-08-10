@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"text/template"
 	"time"
 )
@@ -257,8 +258,29 @@ type AskResponse struct {
 	Confidence string `json:"confidence"`
 }
 
+func (c *chatClient) validateJapanese(content string) string {
+	matches := regexp.MustCompile(`[\p{Hiragana}\p{Katakana}\p{Han}ー々、。「」『』？！]+`).FindAllString(content, -1)
+	if len(matches) == 0 {
+		return ""
+	}
+
+	valid := matches[0]
+	for _, m := range matches {
+		if len(m) > len(valid) {
+			valid = m
+		}
+	}
+
+	return valid
+}
+
 func (c *chatClient) Ask(ctx context.Context, content string) (*AskResponse, error) {
-	exp, err := c.buildExplainPrompt(content)
+	japanese := c.validateJapanese(content)
+	if japanese == "" {
+		return nil, fmt.Errorf("invalid japanese sentence")
+	}
+
+	exp, err := c.buildExplainPrompt(japanese)
 	if err != nil {
 		return nil, err
 	}
