@@ -14,6 +14,8 @@ const (
 	StateDetail
 	StateTranslate
 	StateTranslateDetail
+	StateExplainer
+	StateExplainerDetail
 )
 
 type switchToSearch struct{}
@@ -33,3 +35,7 @@ type switchToTranslateDetail struct {
 	res []domain.Translation
 }
 type switchToMenu struct{}
+type switchToExplainer struct{}
+type switchToExplainerDetail struct {
+	res *domain.AskResponse
+}

@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	deepSeekModel = "deepseek-reasoner"
+	deepSeekModel = "deepseek-chat"
 	baseDeepSeek  = "https://api.deepseek.com/chat"
 )
 

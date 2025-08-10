@@ -21,7 +21,7 @@ type TranslatorModel struct {
 func NewTranslatorModel(httpClient *http.Client, k string) *TranslatorModel {
 	ta := textarea.New()
 	ta.CharLimit = 2000
-	ta.Placeholder = "私はバカな男だ"
+	//ta.Placeholder = "私はバカな男だ"
 	ta.Focus()
 
 	return &TranslatorModel{

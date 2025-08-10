@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/ziliscite/dictionary-cli/internal/domain"
 	"github.com/ziliscite/dictionary-cli/internal/engine"
 	"net/http"
 	"os"
@@ -39,6 +40,15 @@ func main() {
 	translatorModel := engine.NewTranslatorModel(htc, deepLKey)
 	translateDetailModel := engine.NewTranslationDetailModel()
 
+	deepSeekKey := os.Getenv("DEEPSEEK_KEY")
+	if deepSeekKey == "" {
+		fmt.Println("DEEPSEEK_KEY is not set")
+		os.Exit(1)
+	}
+
+	explainer := domain.NewJapaneseExplainerClient(htc, deepSeekKey, 2888)
+	explainerModel := engine.NewExplainerModel(explainer)
+
 	eng := engine.NewEngine(
 		menuModel,
 		searchModel,
@@ -47,6 +57,7 @@ func main() {
 		detailModel,
 		translatorModel,
 		translateDetailModel,
+		explainerModel,
 	)
 
 	if _, err := tea.NewProgram(eng).Run(); err != nil {

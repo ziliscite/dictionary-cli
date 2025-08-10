@@ -13,16 +13,18 @@ type Choice int
 const (
 	Search Choice = iota
 	Translate
+	Explain
 )
 
 func (c Choice) String() string {
-	if c < Search || c > Translate {
+	if c < Search || c > Explain {
 		return "Invalid"
 	}
 
 	return [...]string{
 		"Search",
 		"Translate",
+		"Explain",
 	}[c]
 }
 
@@ -34,7 +36,7 @@ type MenuModel struct {
 func NewMenuModel() *MenuModel {
 	return &MenuModel{
 		Choices: []Choice{
-			Search, Translate,
+			Search, Translate, Explain,
 		},
 	}
 }
@@ -60,6 +62,11 @@ func (m *MenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case Translate:
 				return m, func() tea.Msg {
 					return switchToTranslate{}
+				}
+
+			case Explain:
+				return m, func() tea.Msg {
+					return switchToExplainer{}
 				}
 			}
 
