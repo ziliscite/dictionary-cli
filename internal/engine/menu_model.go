@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
 type Choice int
@@ -102,7 +101,7 @@ func (m *MenuModel) View() string {
 
 func checkbox(label string, checked bool) string {
 	if checked {
-		return lipgloss.NewStyle().Foreground(lipgloss.Color("212")).Render("[x] " + label)
+		return view.DotStyle.Render("[x] " + label)
 	}
 
 	return fmt.Sprintf("[ ] %s", label)

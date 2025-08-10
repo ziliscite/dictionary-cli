@@ -1,18 +1,17 @@
 package engine
 
 import (
+	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
+	"log/slog"
+	"reflect"
 )
 
 type Engine struct {
-	state                AppState
-	menuModel            *MenuModel
-	searchModel          *SearchModel
-	loadingModel         *LoadingModel
-	dictionaryModel      *DictionaryModel
-	detailModel          *DictionaryDetailModel
-	translatorModel      *TranslatorModel
-	translateDetailModel *TranslationDetailModel
+	state  AppState
+	models map[AppState]tea.Model
+
+	router *TransitionRouter
 }
 
 func NewEngine(
@@ -24,166 +23,150 @@ func NewEngine(
 	translatorModel *TranslatorModel,
 	translateDetailModel *TranslationDetailModel,
 ) *Engine {
-	return &Engine{
-		state:                StateMenu,
-		menuModel:            menuModel,
-		searchModel:          searchModel,
-		loadingModel:         loadingModel,
-		dictionaryModel:      dictionaryModel,
-		detailModel:          detailModel,
-		translatorModel:      translatorModel,
-		translateDetailModel: translateDetailModel,
+	models := map[AppState]tea.Model{
+		StateMenu:            menuModel,
+		StateLoading:         loadingModel,
+		StateDictionaryList:  dictionaryModel,
+		StateDetail:          detailModel,
+		StateSearch:          searchModel,
+		StateTranslate:       translatorModel,
+		StateTranslateDetail: translateDetailModel,
 	}
+
+	engine := &Engine{state: StateMenu, models: models, router: &TransitionRouter{
+		handlers: make(map[reflect.Type]TransitionHandler),
+	}}
+
+	return engine.registerRouters()
 }
 
-func (m *Engine) Init() tea.Cmd {
+func (e *Engine) registerRouters() *Engine {
+	e.router.Register(switchToMenu{}, func(msg tea.Msg) (AppState, []tea.Cmd) {
+		return StateMenu, nil
+	})
+
+	e.router.Register(switchToDictionaryNew{}, func(msg tea.Msg) (AppState, []tea.Cmd) {
+		st := msg.(switchToDictionaryNew)
+		if dm, ok := e.getModel(StateDictionaryList).(*DictionaryModel); ok {
+			cmd := dm.SetItems(st.res)
+			return StateDictionaryList, []tea.Cmd{cmd}
+		}
+
+		return StateDictionaryList, nil
+	})
+
+	e.router.Register(switchToDictionaryOld{}, func(msg tea.Msg) (AppState, []tea.Cmd) {
+		return StateDictionaryList, nil
+	})
+
+	e.router.Register(switchToDetail{}, func(msg tea.Msg) (AppState, []tea.Cmd) {
+		st := msg.(switchToDetail)
+		if dm, ok := e.getModel(StateDetail).(*DictionaryDetailModel); ok {
+			return StateDetail, []tea.Cmd{dm.SetItem(st.res)}
+		}
+
+		return StateDetail, nil
+	})
+
+	e.router.Register(switchToSearch{}, func(msg tea.Msg) (AppState, []tea.Cmd) {
+		if sm, ok := e.getModel(StateDetail).(*SearchModel); ok {
+			return StateSearch, []tea.Cmd{sm.Focus()}
+		}
+
+		return StateSearch, nil
+	})
+
+	e.router.Register(switchToTranslate{}, func(msg tea.Msg) (AppState, []tea.Cmd) {
+		if tm, ok := e.getModel(StateTranslate).(*TranslatorModel); ok {
+			return StateTranslate, []tea.Cmd{tm.Focus()}
+		}
+
+		return StateTranslate, nil
+	})
+
+	e.router.Register(switchToTranslateDetail{}, func(msg tea.Msg) (AppState, []tea.Cmd) {
+		st := msg.(switchToTranslateDetail)
+		if td, ok := e.getModel(StateTranslateDetail).(*TranslationDetailModel); ok {
+			return StateTranslateDetail, []tea.Cmd{td.SetItem(st.res)}
+		}
+
+		return StateTranslateDetail, nil
+	})
+
+	e.router.Register(switchToLoading{}, func(msg tea.Msg) (AppState, []tea.Cmd) {
+		if lm, ok := e.getModel(StateLoading).(*LoadingModel); ok {
+			return StateLoading, []tea.Cmd{lm.Tick()}
+		}
+
+		return StateLoading, nil
+	})
+
+	e.router.Register(switchToError{}, func(msg tea.Msg) (AppState, []tea.Cmd) {
+		err := msg.(switchToError)
+		if err.err != nil {
+			slog.Error(err.err.Error())
+		}
+
+		return StateMenu, nil
+	})
+
+	return e
+}
+
+func (e *Engine) getModel(s AppState) tea.Model {
+	if m, ok := e.models[s]; ok {
+		return m
+	}
+
 	return nil
 }
 
-func (m *Engine) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmds []tea.Cmd
+func (e *Engine) setModel(s AppState, m tea.Model) {
+	e.models[s] = m
+}
 
-	switch msg := msg.(type) {
-	case switchToMenu:
-		m.Menu()
-		return m, nil
+func (e *Engine) Init() tea.Cmd {
+	if m := e.getModel(e.state); m != nil {
+		return m.Init()
+	}
 
-	case switchToDictionaryNew:
-		m.DictionaryList()
-		cmds = append(cmds, m.dictionaryModel.SetItems(msg.res))
-		return m, tea.Batch(cmds...)
+	return nil
+}
 
-	case switchToDictionaryOld:
-		m.DictionaryList()
-		return m, nil
+func (e *Engine) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if h, ok := e.router.Handle(msg); ok {
+		nextState, cmds := h(msg)
+		e.state = nextState
+		if len(cmds) > 0 {
+			return e, tea.Batch(cmds...)
+		}
 
-	case switchToDetail:
-		m.Detail()
-		cmds = append(cmds, m.detailModel.SetItem(msg.res))
-		return m, tea.Batch(cmds...)
+		return e, nil
+	}
 
-	case switchToSearch:
-		m.Search()
-		cmds = append(cmds, m.searchModel.Focus())
-		return m, tea.Batch(cmds...)
-
-	case switchToTranslate:
-		m.Translator()
-		cmds = append(cmds, m.translatorModel.Focus())
-		return m, tea.Batch(cmds...)
-
-	case switchToTranslateDetail:
-		m.TranslateDetail()
-		cmds = append(cmds, m.translateDetailModel.SetItem(msg.res))
-		return m, tea.Batch(cmds...)
-
-	case switchToLoading:
-		m.Loading()
-		cmds = append(cmds, m.loadingModel.Tick())
-		return m, tea.Batch(cmds...)
-
-	case switchToError:
-		m.Menu()
-		return m, nil
-
+	switch m := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.Type {
+		switch m.Type {
 		case tea.KeyCtrlC, tea.KeyEsc:
-			return m, tea.Quit
+			return e, tea.Quit
 		}
 	}
 
-	return m.State(msg)
-}
-
-func updateAndAssign[T any](m *Engine, msg tea.Msg, upd func(tea.Msg) (tea.Model, tea.Cmd), set func(T)) (tea.Model, tea.Cmd) {
-	mdl, cmd := upd(msg)
-	if v, ok := mdl.(T); ok {
-		set(v)
+	current := e.getModel(e.state)
+	if current == nil {
+		return e, nil
 	}
-	return m, cmd
+
+	mdl, cmd := current.Update(msg)
+	e.setModel(e.state, mdl)
+
+	return e, cmd
 }
 
-func (m *Engine) State(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch m.state {
-	case StateMenu:
-		return updateAndAssign[*MenuModel](m, msg, m.menuModel.Update, func(mm *MenuModel) {
-			m.menuModel = mm
-		})
-	case StateLoading:
-		return updateAndAssign[*LoadingModel](m, msg, m.loadingModel.Update, func(lm *LoadingModel) {
-			m.loadingModel = lm
-		})
-	case StateSearch:
-		return updateAndAssign[*SearchModel](m, msg, m.searchModel.Update, func(sm *SearchModel) {
-			m.searchModel = sm
-		})
-	case StateDictionaryList:
-		return updateAndAssign[*DictionaryModel](m, msg, m.dictionaryModel.Update, func(dm *DictionaryModel) {
-			m.dictionaryModel = dm
-		})
-	case StateDetail:
-		return updateAndAssign[*DictionaryDetailModel](m, msg, m.detailModel.Update, func(dm *DictionaryDetailModel) {
-			m.detailModel = dm
-		})
-	case StateTranslate:
-		return updateAndAssign[*TranslatorModel](m, msg, m.translatorModel.Update, func(tm *TranslatorModel) {
-			m.translatorModel = tm
-		})
-	case StateTranslateDetail:
-		return updateAndAssign[*TranslationDetailModel](m, msg, m.translateDetailModel.Update, func(tm *TranslationDetailModel) {
-			m.translateDetailModel = tm
-		})
-	default:
-		return m, nil
+func (e *Engine) View() string {
+	if m := e.getModel(e.state); m != nil {
+		return m.View()
 	}
-}
 
-func (m *Engine) View() string {
-	switch m.state {
-	case StateMenu:
-		return m.menuModel.View()
-	case StateLoading:
-		return m.loadingModel.View()
-	case StateSearch:
-		return m.searchModel.View()
-	case StateDictionaryList:
-		return m.dictionaryModel.View()
-	case StateDetail:
-		return m.detailModel.View()
-	case StateTranslate:
-		return m.translatorModel.View()
-	case StateTranslateDetail:
-		return m.translateDetailModel.View()
-	default:
-		panic("unknown state")
-	}
-}
-
-func (m *Engine) Loading() {
-	m.state = StateLoading
-}
-
-func (m *Engine) Search() {
-	m.state = StateSearch
-}
-
-func (m *Engine) DictionaryList() {
-	m.state = StateDictionaryList
-}
-
-func (m *Engine) Detail() {
-	m.state = StateDetail
-}
-
-func (m *Engine) Translator() {
-	m.state = StateTranslate
-}
-
-func (m *Engine) TranslateDetail() {
-	m.state = StateTranslateDetail
-}
-
-func (m *Engine) Menu() {
-	m.state = StateMenu
+	return fmt.Sprintf("Unknown state: %v", e.state)
 }
