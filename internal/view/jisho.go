@@ -1,50 +1,51 @@
 package view
 
 import (
-	"github.com/charmbracelet/lipgloss"
 	"github.com/ziliscite/dictionary-cli/internal/domain"
+	"strconv"
 	"strings"
 )
 
 func RenderEntry(entry *domain.Information) string {
 	var b strings.Builder
-	b.WriteString("Entry: " + WordStyleBold.Underline(true).Render(entry.Slug) + "\n")
+	b.WriteString("Entry: **" + entry.Slug + "**")
+	if len(entry.JLPT) > 0 {
+		b.WriteString(" | " + strings.Join(entry.JLPT, ", "))
+	}
+	b.WriteString("\n\n")
 
 	maxLen := max(len(entry.Japanese), len(entry.Senses))
 	for i := 0; i < maxLen; i++ {
 		if i < len(entry.Japanese) {
-			b.WriteString("\n")
+			b.WriteString(strconv.Itoa(i+1) + ". ")
 			term := entry.Japanese[i]
 			if term.Word != "" {
-				b.WriteString(WordStyle.Render(term.Word))
-				b.WriteString(" ")
-				b.WriteString(MutedStyleBold.Render("(" + term.Reading + ")"))
+				b.WriteString("**" + term.Word + "** ")
+				b.WriteString("_(" + term.Reading + ")_\n")
 			} else {
-				b.WriteString(WordStyle.Render(term.Reading))
+				b.WriteString("*" + term.Reading + "*\n")
 			}
 			b.WriteString("\n")
 		}
 
 		if i < len(entry.Senses) {
 			sense := entry.Senses[i]
-			b.WriteString(renderSense(sense.EnglishDefinitions, sense.PartsOfSpeech))
+			b.WriteString(renderSensePlain(sense.EnglishDefinitions, sense.PartsOfSpeech))
 		}
 	}
 
-	return lipgloss.NewStyle().Render(b.String())
+	return b.String()
 }
 
-func renderSense(eng, pos []string) string {
+func renderSensePlain(eng, pos []string) string {
 	var b strings.Builder
 	if len(pos) > 0 {
-		b.WriteString(MutedStyleBold.Italic(true).Render(strings.Join(pos, ", ")))
-		b.WriteString("\n")
+		b.WriteString("_(" + strings.Join(pos, ", ") + ")_\n")
 	}
 
 	for _, def := range eng {
-		b.WriteString(DotStyle.SetString("• ").String())
-		b.WriteString(WordStyle.Foreground(lipgloss.Color("252")).Render(def))
-		b.WriteString("\n")
+		b.WriteString("- " + def + "\n")
 	}
-	return NormalStyle.MarginTop(1).Render(b.String())
+	b.WriteString("\n")
+	return b.String()
 }

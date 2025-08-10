@@ -13,8 +13,9 @@ const (
 	ColorMain      = "252"
 	ColorMuted     = "240"
 	ColorHighlight = "170"
-	ColorSpinner   = "70"
+	ColorSpinner   = "69"
 	ColorDot       = "99"
+	ColorBorder    = "62"
 )
 
 var (
@@ -25,7 +26,8 @@ var (
 	MutedStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color(ColorMuted))
 	MutedStyleBold = MutedStyle.Bold(true)
 
-	DotStyle = lipgloss.NewStyle().Foreground(lipgloss.Color(ColorDot))
+	DotStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color(ColorDot))
+	BorderStyle = lipgloss.NewStyle().BorderStyle(lipgloss.RoundedBorder()).BorderForeground(lipgloss.Color(ColorBorder))
 
 	LesterViewStyle     = lipgloss.NewStyle().Padding(1, 2, 1, 0)
 	LesterViewNoteStyle = MutedStyle.Padding(1, 0, 3, 0)

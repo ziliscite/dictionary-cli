@@ -1,7 +1,6 @@
 package view
 
 import (
-	"github.com/charmbracelet/lipgloss"
 	"github.com/ziliscite/dictionary-cli/internal/domain"
 	"strings"
 )
@@ -12,11 +11,11 @@ func RenderTranslation(translations []domain.Translation) string {
 	}
 
 	var b strings.Builder
-	b.WriteString("Source: " + WordStyleBold.Underline(true).Render(translations[0].DetectedSourceLanguage) + "\n\n")
+	b.WriteString("Source: " + WordStyleBold.Underline(true).Render(translations[0].DetectedSourceLanguage) + "\n")
 
 	for _, t := range translations {
 		b.WriteString(t.Text + "\n")
 	}
 
-	return lipgloss.NewStyle().Render(b.String())
+	return WordStyle.Render(b.String())
 }
