@@ -20,7 +20,7 @@ func init() {
 
 func main() {
 	htc := &http.Client{
-		Timeout: 5 * time.Second,
+		Timeout: 120 * time.Second,
 	}
 
 	menuModel := engine.NewMenuModel()
@@ -48,6 +48,7 @@ func main() {
 
 	explainer := domain.NewJapaneseExplainerClient(htc, deepSeekKey, 2888)
 	explainerModel := engine.NewExplainerModel(explainer)
+	explainerDetailModel := engine.NewExplainerDetailModel()
 
 	eng := engine.NewEngine(
 		menuModel,
@@ -58,6 +59,7 @@ func main() {
 		translatorModel,
 		translateDetailModel,
 		explainerModel,
+		explainerDetailModel,
 	)
 
 	if _, err := tea.NewProgram(eng).Run(); err != nil {

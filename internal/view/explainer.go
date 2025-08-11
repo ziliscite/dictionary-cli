@@ -8,7 +8,7 @@ import (
 
 // RenderExplainer will split the explanation into 3 parts: Core, Analysis, and Usage
 // It will return 3 of them in the form of a struct, which will have their own render functions.
-func RenderExplainer(entry domain.Explanation) (*Core, *Analysis, *Usage) {
+func RenderExplainer(entry *domain.Explanation) (*Core, *Analysis, *Usage) {
 	core := &Core{
 		Original:            entry.Original,
 		Kana:                entry.Kana,
@@ -27,9 +27,23 @@ func RenderExplainer(entry domain.Explanation) (*Core, *Analysis, *Usage) {
 		NuanceAndRegister:          entry.NuanceAndRegister,
 		CommonErrors:               entry.CommonErrors,
 		ParaphrasesAndAlternatives: entry.ParaphrasesAndAlternatives,
+		Practice: Practice{
+			PracticeExercises: entry.PracticeExercises,
+		},
 	}
 
 	return core, analysis, usage
+}
+
+func indentLines(s, indent string) string {
+	if s == "" {
+		return ""
+	}
+	lines := strings.Split(s, "\n")
+	for i := range lines {
+		lines[i] = indent + lines[i]
+	}
+	return strings.Join(lines, "\n")
 }
 
 type Core struct {
@@ -44,17 +58,25 @@ type Core struct {
 func (c Core) Render() string {
 	var b strings.Builder
 
-	b.WriteString(WordStyleBold.Render("Sentence: " + c.Original + "( " + c.Kana + " )"))
-	b.WriteString("\n")
-	b.WriteString(WordStyle.Render("Romaji: " + c.Romaji))
-	b.WriteString(WordStyle.Render("Translations: "))
+	b.WriteString(WordStyleBold.Render("Sentence: "+c.Original+" ("+c.Kana+")") + "\n")
+	b.WriteString(WordStyle.Render("Romaji: "+c.Romaji) + "\n\n")
 
-	b.WriteString(DotStyle.Render(">") + " Literal:\n")
-	b.WriteString(WordStyle.Render(c.LiteralTranslation))
-	b.WriteString(DotStyle.Render(">") + " Natural:\n")
-	b.WriteString(WordStyle.Render(strings.Join(c.NaturalTranslations, "\n")))
+	b.WriteString(WordStyle.Render("Translations:") + "\n")
 
-	b.WriteString(WordStyle.Render("Confidence: " + c.Confidence))
+	b.WriteString(DotStyle.Render("> ") + WordStyle.Bold(true).Render("Literal:") + "\n")
+	b.WriteString(indentLines(WordStyle.Render(c.LiteralTranslation), "  ") + "\n\n")
+
+	b.WriteString(DotStyle.Render("> ") + WordStyle.Bold(true).Render("Natural:") + "\n")
+	if len(c.NaturalTranslations) == 0 {
+		b.WriteString("  " + MutedStyle.Render("None") + "\n\n")
+	} else {
+		for _, t := range c.NaturalTranslations {
+			b.WriteString("  " + WordStyle.Render(t) + "\n")
+		}
+		b.WriteString("\n")
+	}
+
+	b.WriteString(WordStyle.Render("Confidence: "+c.Confidence) + "\n")
 
 	return b.String()
 }
@@ -76,22 +98,25 @@ type Analysis struct {
 func (a Analysis) Render() string {
 	var b strings.Builder
 
-	b.WriteString(WordStyleBold.Render("Gloss Analysis: ") + "\n")
+	b.WriteString(WordStyleBold.Render("Gloss Analysis:") + "\n\n")
 
 	for _, v := range a.WordByWord {
-		b.WriteString(WordStyleBold.Italic(true).Render(v.Token + " "))
-		b.WriteString(MutedStyle.Render("("+v.Reading+")") + DotStyle.Render("→ "))
-		b.WriteString(WordStyle.Render(v.Pos + "(" + v.Meaning + ")" + "\n"))
+		b.WriteString(WordStyleBold.Italic(true).Render(v.Token))
+		b.WriteString(" ")
+		b.WriteString(MutedStyle.Render("("+v.Reading+")") + " ")
+		b.WriteString(DotStyle.Render("→ "))
+		b.WriteString(WordStyle.Render(v.Pos+" ("+v.Meaning+")") + "\n")
 	}
 
 	b.WriteString("\n")
-	b.WriteString(WordStyleBold.Render("Grammar Points: ") + "\n")
+	b.WriteString(WordStyleBold.Render("Grammar Points:") + "\n\n")
 
 	for i, p := range a.GrammarPoints {
-		b.WriteString(DotStyle.Render(fmt.Sprintf("%d.", i)) + WordStyleBold.Italic(true).Render(p.Point+" "))
-		b.WriteString(WordStyle.Render(p.Explanation + "\n"))
+		b.WriteString(DotStyle.Render(fmt.Sprintf("%d.", i+1)) + " ")
+		b.WriteString(WordStyleBold.Italic(true).Render(p.Point) + " ")
+		b.WriteString(WordStyle.Render(p.Explanation) + "\n")
 		for _, e := range p.SimilarExamples {
-			b.WriteString("\t" + DotStyle.Render("→") + MutedStyle.Render("  "+e+"\n"))
+			b.WriteString("\t" + DotStyle.Render("→") + " " + MutedStyle.Render(e) + "\n")
 		}
 		b.WriteString("\n")
 	}
@@ -113,12 +138,13 @@ func (p Practice) Render() string {
 
 	if len(p.PracticeExercises) == 0 {
 		b.WriteString(MutedStyle.Render("None") + "\n")
-	} else {
-		for i, ex := range p.PracticeExercises {
-			b.WriteString(DotStyle.Render(fmt.Sprintf("%d.", i+1)) + " ")
-			b.WriteString(WordStyleBold.Italic(true).Render(ex.Task) + "\n")
-			b.WriteString("\t" + MutedStyle.Render("Answer: "+ex.Answer) + "\n\n")
-		}
+		return b.String()
+	}
+
+	for i, ex := range p.PracticeExercises {
+		b.WriteString(DotStyle.Render(fmt.Sprintf("%d.", i+1)) + " ")
+		b.WriteString(WordStyleBold.Italic(true).Render(ex.Task) + "\n")
+		b.WriteString("\t" + MutedStyle.Render("Answer: "+ex.Answer) + "\n\n")
 	}
 
 	return b.String()
@@ -135,7 +161,7 @@ func (u Usage) Render() string {
 	var b strings.Builder
 
 	b.WriteString(WordStyleBold.Render("Nuances:") + "\n")
-	if u.NuanceAndRegister == "" {
+	if strings.TrimSpace(u.NuanceAndRegister) == "" {
 		b.WriteString(MutedStyle.Render("None provided") + "\n\n")
 	} else {
 		for _, line := range strings.Split(u.NuanceAndRegister, "\n") {

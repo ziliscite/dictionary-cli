@@ -3,7 +3,6 @@ package engine
 import (
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
-	"log/slog"
 	"reflect"
 )
 
@@ -46,6 +45,16 @@ func NewEngine(
 
 func (e *Engine) registerRouters() *Engine {
 	e.router.Register(switchToMenu{}, func(msg tea.Msg) (AppState, []tea.Cmd) {
+		return StateMenu, nil
+	})
+
+	e.router.Register(switchToError{}, func(msg tea.Msg) (AppState, []tea.Cmd) {
+		te := msg.(switchToError)
+		if dm, ok := e.getModel(StateMenu).(*MenuModel); ok {
+			cmd := dm.SetError(te.err)
+			return StateMenu, []tea.Cmd{cmd}
+		}
+
 		return StateMenu, nil
 	})
 
@@ -95,15 +104,6 @@ func (e *Engine) registerRouters() *Engine {
 		}
 
 		return StateLoading, nil
-	})
-
-	e.router.Register(switchToError{}, func(msg tea.Msg) (AppState, []tea.Cmd) {
-		err := msg.(switchToError)
-		if err.err != nil {
-			slog.Error(err.err.Error())
-		}
-
-		return StateMenu, nil
 	})
 
 	e.router.Register(switchToExplainer{}, func(msg tea.Msg) (AppState, []tea.Cmd) {

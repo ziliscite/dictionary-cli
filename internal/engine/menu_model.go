@@ -31,6 +31,8 @@ func (c Choice) String() string {
 type MenuModel struct {
 	Choice  int
 	Choices []Choice
+
+	err error
 }
 
 func NewMenuModel() *MenuModel {
@@ -51,6 +53,12 @@ func (m *MenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.Type {
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return m, tea.Quit
+
+		case tea.KeyCtrlF:
+			return m, func() tea.Msg {
+				m.err = nil
+				return nil
+			}
 
 		case tea.KeyEnter:
 			switch m.Choices[m.Choice] {
@@ -91,6 +99,12 @@ func (m *MenuModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *MenuModel) View() string {
+	if m.err != nil {
+		return view.BaseViewStyle.Render(m.err.Error()) + view.LesterViewNoteStyle.Render(
+			"esc/ctrl+c: exit • ctrl+f: wipe error\n",
+		)
+	}
+
 	lines := make([]string, 0, len(m.Choices))
 	for i, c := range m.Choices {
 		lines = append(lines, checkbox(c.String(), m.Choice == i))
@@ -104,6 +118,11 @@ func (m *MenuModel) View() string {
 	)) + view.LesterViewNoteStyle.Render(
 		"esc/ctrl+c: exit • enter: choose • up/down: select\n",
 	)
+}
+
+func (m *MenuModel) SetError(err error) tea.Cmd {
+	m.err = err
+	return nil
 }
 
 func checkbox(label string, checked bool) string {

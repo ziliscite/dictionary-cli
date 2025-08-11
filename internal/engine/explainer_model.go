@@ -53,7 +53,9 @@ func (em *ExplainerModel) askCmd(ctx context.Context, query string) tea.Cmd {
 				return switchToError{err}
 			}
 
-			return switchToExplainerDetail{res: res}
+			return switchToExplainerDetail{
+				res: res,
+			}
 		},
 	)
 }
