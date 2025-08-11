@@ -7,7 +7,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ziliscite/dictionary-cli/internal/domain"
 	"github.com/ziliscite/dictionary-cli/internal/view"
-	"log/slog"
 )
 
 type ExplainerModel struct {
@@ -39,7 +38,7 @@ func (em *ExplainerModel) View() string {
 		"Insert Japanese Sentence to get the explanation: \n\n%s",
 		em.ti.View(),
 	)) + view.LesterViewNoteStyle.Render(
-		"esc/ctrl+c: exit • ctrl+q: back to menu • enter: ask",
+		"esc/ctrl+c: exit • ctrl+q: back to menu • enter: ask\n",
 	)
 }
 
@@ -54,7 +53,6 @@ func (em *ExplainerModel) askCmd(ctx context.Context, query string) tea.Cmd {
 				return switchToError{err}
 			}
 
-			slog.Info("explain result", "res", res)
 			return switchToExplainerDetail{res: res}
 		},
 	)

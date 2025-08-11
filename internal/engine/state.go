@@ -37,5 +37,5 @@ type switchToTranslateDetail struct {
 type switchToMenu struct{}
 type switchToExplainer struct{}
 type switchToExplainerDetail struct {
-	res *domain.AskResponse
+	res *domain.Explanation
 }

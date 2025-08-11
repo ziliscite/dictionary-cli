@@ -60,7 +60,7 @@ func (ddm *DictionaryDetailModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (ddm *DictionaryDetailModel) View() string {
 	return ddm.viewport.View() + view.FootNoteStyle.Padding(1, 0, 2, 4).Render(
-		" ↑/k up • ↓/j down • ctrl+s: back to search • ctrl+q: back to dictionary",
+		" ↑/k up • ↓/j down • ctrl+s: back to search • ctrl+q: back to dictionary\n",
 	)
 }
 

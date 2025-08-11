@@ -11,7 +11,7 @@ type Translator interface {
 }
 
 type Explainer interface {
-	Ask(ctx context.Context, content string) (*AskResponse, error)
+	Ask(ctx context.Context, content string) (*Explanation, error)
 }
 
 type Chatter interface {

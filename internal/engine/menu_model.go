@@ -102,7 +102,7 @@ func (m *MenuModel) View() string {
 		"What do you want to do?\n\n%s\n",
 		choices,
 	)) + view.LesterViewNoteStyle.Render(
-		"esc/ctrl+c: exit • enter: choose • up/down: select",
+		"esc/ctrl+c: exit • enter: choose • up/down: select\n",
 	)
 }
 

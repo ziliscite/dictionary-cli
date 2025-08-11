@@ -41,7 +41,7 @@ func (ddm *TranslationDetailModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (ddm *TranslationDetailModel) View() string {
 	fnt := view.FootNoteStyle.Padding(1, 0, 2, 4).Render(
-		"ctrl+q: back to translation",
+		"ctrl+q: back to translation\n",
 	)
 
 	if ddm.tr == nil || len(ddm.tr) == 0 {

@@ -85,7 +85,7 @@ func NewDeepSeekClient(client *http.Client, apiKey, deepSeekModel, responseForma
 
 const explainerSystemPrompt = `
 You are a concise, accurate Japanese teacher and linguistic analyzer. 
-For any provided Japanese sentence, produce a careful, step-by-step explanation including: kana reading, romaji, literal translation, natural translation(s), morpheme-by-morpheme gloss, grammatical analysis (each grammar point explained clearly with examples), nuance/register (politeness, offensiveness, formality), common learner mistakes, possible paraphrases/alternatives, and 2-5 practice exercises with answers. 
+For any provided Japanese sentence, produce a careful, step-by-step explanation including: kana reading, romaji, literal translation, natural translation(s), grammatical analysis (each grammar point explained clearly with examples), nuance/register (politeness, offensiveness, formality), common learner mistakes, possible paraphrases/alternatives, and 2-5 practice exercises with answers. 
 Use plain language, avoid speculation, and whenever a claim about usage or nuance is made, include a short justification (1 sentence).
 
 Return output in JSON following the schema provided. Keep examples short and use only the words and structures relevant to the sentence unless you give a short contrast example. If the sentence contains offensive or sensitive language, flag it in the "nuance" field. Practice exercises should be clear and moderate to hard in difficulty.
@@ -198,11 +198,6 @@ Schema fields required:
   "romaji": string,
   "literal_translation": string,
   "natural_translations": [string],
-  "gloss_lines": {
-     "surface": string,        // the original split into morphemes
-     "reading": string,        // corresponding kana/romaji per morpheme
-     "gloss": string           // short gloss per morpheme (EN)
-  },
   "word_by_word": [ { "token": string, "reading": string, "pos": string, "meaning": string } ],
   "grammar_points": [ { "point": string, "explanation": string, "similar_examples": [string] } ],
   "nuance_and_register": string,
@@ -226,18 +221,13 @@ func (c *chatClient) buildExplainPrompt(input string) (string, error) {
 	return buf.String(), nil
 }
 
-type AskResponse struct {
+type Explanation struct {
 	Original            string   `json:"original"`
 	Kana                string   `json:"kana"`
 	Romaji              string   `json:"romaji"`
 	LiteralTranslation  string   `json:"literal_translation"`
 	NaturalTranslations []string `json:"natural_translations"`
-	GlossLines          struct {
-		Surface string `json:"surface"`
-		Reading string `json:"reading"`
-		Gloss   string `json:"gloss"`
-	} `json:"gloss_lines"`
-	WordByWord []struct {
+	WordByWord          []struct {
 		Token   string `json:"token"`
 		Reading string `json:"reading"`
 		Pos     string `json:"pos"`
@@ -274,7 +264,7 @@ func (c *chatClient) validateJapanese(content string) string {
 	return valid
 }
 
-func (c *chatClient) Ask(ctx context.Context, content string) (*AskResponse, error) {
+func (c *chatClient) Ask(ctx context.Context, content string) (*Explanation, error) {
 	japanese := c.validateJapanese(content)
 	if japanese == "" {
 		return nil, fmt.Errorf("invalid japanese sentence")
@@ -301,7 +291,7 @@ func (c *chatClient) Ask(ctx context.Context, content string) (*AskResponse, err
 		return nil, err
 	}
 
-	var ask AskResponse
+	var ask Explanation
 	if err = json.Unmarshal([]byte(stringRes), &ask); err != nil {
 		return nil, err
 	}

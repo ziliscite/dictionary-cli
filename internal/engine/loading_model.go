@@ -48,6 +48,6 @@ func (lm *LoadingModel) Tick() tea.Cmd {
 
 func (lm *LoadingModel) View() string {
 	return view.LesterViewStyle.Render(fmt.Sprintf("Now loading %s", lm.sp.View())) + view.LesterViewNoteStyle.Render(
-		"esc: exit",
+		"esc: exit\n",
 	)
 }

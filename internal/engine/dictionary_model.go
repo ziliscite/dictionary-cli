@@ -123,7 +123,7 @@ func (dm *DictionaryModel) SetItems(infos []domain.Information) tea.Cmd {
 func (dm *DictionaryModel) View() string {
 	if len(dm.list.Items()) == 0 {
 		return view.BaseViewStyle.Render("No items found") + view.FootNoteStyle.Render(
-			"ctrl+q: back to search",
+			"ctrl+q: back to search\n",
 		)
 	}
 

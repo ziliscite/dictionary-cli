@@ -23,6 +23,7 @@ func NewEngine(
 	translatorModel *TranslatorModel,
 	translateDetailModel *TranslationDetailModel,
 	explainerModel *ExplainerModel,
+	explainerDetailModel *ExplainerDetailModel,
 ) *Engine {
 	models := map[AppState]tea.Model{
 		StateMenu:            menuModel,
@@ -33,6 +34,7 @@ func NewEngine(
 		StateTranslate:       translatorModel,
 		StateTranslateDetail: translateDetailModel,
 		StateExplainer:       explainerModel,
+		StateExplainerDetail: explainerDetailModel,
 	}
 
 	engine := &Engine{state: StateMenu, models: models, router: &TransitionRouter{
@@ -106,6 +108,15 @@ func (e *Engine) registerRouters() *Engine {
 
 	e.router.Register(switchToExplainer{}, func(msg tea.Msg) (AppState, []tea.Cmd) {
 		return StateExplainer, nil
+	})
+
+	e.router.Register(switchToExplainerDetail{}, func(msg tea.Msg) (AppState, []tea.Cmd) {
+		st := msg.(switchToExplainerDetail)
+		if td, ok := e.getModel(StateExplainerDetail).(*ExplainerDetailModel); ok {
+			return StateExplainerDetail, []tea.Cmd{td.SetItem(st.res)}
+		}
+
+		return StateExplainerDetail, nil
 	})
 
 	return e

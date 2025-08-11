@@ -38,7 +38,7 @@ func (im *SearchModel) View() string {
 		"What do you want to know?\n\n%s",
 		im.ti.View(),
 	)) + view.LesterViewNoteStyle.Render(
-		"esc/ctrl+c: exit • ctrl+q: back to menu • enter: search",
+		"esc/ctrl+c: exit • ctrl+q: back to menu • enter: search\n",
 	)
 }
 

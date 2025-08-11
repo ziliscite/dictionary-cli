@@ -48,7 +48,7 @@ func (im *TranslatorModel) View() string {
 		"What do you want to translate to %s?\n\n%s",
 		targetLanguage, im.ta.View(),
 	)) + view.LesterViewNoteStyle.Render(
-		fmt.Sprintf("esc/ctrl+c: exit • ctrl+q: back to menu • shift+left: %s • shift+right: %s • ctrl+t: translate", prev, next),
+		fmt.Sprintf("esc/ctrl+c: exit • ctrl+q: back to menu • shift+left: %s • shift+right: %s • ctrl+t: translate\n", prev, next),
 	)
 }
 
