@@ -1,6 +1,8 @@
-# Dictionary CLI
+# Japanese Learning CLI
 
-A terminal-based Japanese dictionary and translation application that uses the Jisho.org API for word lookups and the DeepL API for text translation.
+Not just a dictionary anymore, lol
+
+A terminal-based Japanese dictionary, translation, and Japanese analysis application that uses the Jisho.org API for word lookups, the DeepL API for text translation, and DeepSeek AI for Japanese sentence analysis.
 
 ## Features
 
@@ -16,6 +18,15 @@ A terminal-based Japanese dictionary and translation application that uses the J
 - Translation functionality:
   - Translate text between multiple languages (Japanese, English, Indonesian)
   - Powered by DeepL API
+- Japanese sentence explainer:
+  - Analyze Japanese sentences for in-depth understanding
+  - Get kana reading, romaji, and both literal and natural translations
+  - Word-by-word breakdown with parts of speech and meanings
+  - Grammar point explanations with similar examples
+  - Nuance and register information
+  - Common errors and alternative expressions
+  - Practice exercises with answers
+  - Powered by DeepSeek AI
 - Keyboard navigation
 - Loading indicators for search and translation operations
 
@@ -56,7 +67,7 @@ docker run -it dict-cli
    dict-cli
    ```
 
-2. From the main menu, select either "Search" (dictionary lookup) or "Translate" (text translation) using arrow keys and press Enter
+2. From the main menu, select either "Search" (dictionary lookup), "Translate" (text translation), or "Explainer" (Japanese sentence analysis) using arrow keys and press Enter
 
 ### Dictionary Mode
 1. Type a Japanese word or English word to search for
@@ -74,6 +85,14 @@ docker run -it dict-cli
 3. Press Ctrl+T to translate the text
 4. Press Ctrl+Q to return to the main menu
 5. Press Esc or Ctrl+C to quit the application
+
+### Explainer Mode
+1. Type a Japanese sentence you want to analyze
+2. Press Enter to get the explanation
+3. Use arrow keys or j/k to scroll through the detailed explanation
+4. Press Ctrl+Q to return to the input screen
+5. Press Ctrl+Q again to return to the main menu
+6. Press Esc or Ctrl+C to quit the application
 
 ## Keyboard Shortcuts
 
@@ -94,6 +113,11 @@ docker run -it dict-cli
 ### Translation Mode
 - `Shift+Left` / `Shift+Right` - Cycle between target languages
 - `Ctrl+T` - Translate the entered text
+
+### Explainer Mode
+- `Enter` - Submit Japanese sentence for analysis
+- `↑/k` / `↓/j` - Scroll through explanation
+- `Ctrl+Q` - Return to input screen or main menu
 
 ## Warnings
 
